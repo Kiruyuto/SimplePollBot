@@ -60,25 +60,25 @@ let nextday = new Date(
 );
 
 client.on('messageCreate', async (message) => {
+  if (message.channel.isDMBased()) return;
   try {
-    if (message.channel.id != grupa3ChannelId) {
-      message.author
-        .send(
-          'Nie możesz tego użyć na tym kanale 🙉\nSpróbuj na: <#1001601818444431501>'
-        )
-        .catch((e) => {
-          console.log(`Error: ${e.message}`);
-        });
-      return;
-    }
     if (message.content == '!poll') {
-      if (
+      if (message.channel.id != grupa3ChannelId) {
+        message.author
+          .send(
+            'Nie możesz tego użyć na tym kanale 🙉\nSpróbuj na: <#1001601818444431501>'
+          )
+          .catch((e) => {
+            console.log(`Error: ${e.message}`);
+          });
+        return;
+      } else if (
         message.author.id == dalgomId ||
         message.author.id == client.application.owner.id
       ) {
         let msgTimestamp = Date.now();
         // Seconds below
-        if ((msgTimestamp - lastWednsday) / 1000 >= 6 * 24 * 60 * 60) {
+        if (dt.getUnixTime(msgTimestamp) >= dt.getUnixTime(nextday)) {
           const pollEmbed = new EmbedBuilder();
           pollEmbed.addFields({
             name: 'Wartości',
