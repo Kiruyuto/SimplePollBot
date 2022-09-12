@@ -1,4 +1,9 @@
-const { Client, GatewayIntentBits, ActivityType } = require('discord.js');
+const {
+  Client,
+  GatewayIntentBits,
+  ActivityType,
+  EmbedBuilder,
+} = require('discord.js');
 const dt = require('date-fns');
 require('dotenv').config();
 
@@ -54,7 +59,7 @@ client.on('messageCreate', async (message) => {
       let msgTimestamp = Date.now();
       // Seconds below
       if ((msgTimestamp - timestamp) / 1000 >= 6 * 24 * 60 * 60) {
-        const pollEmbed = new dc.EmbedBuilder();
+        const pollEmbed = new EmbedBuilder();
         pollEmbed.addFields({
           name: 'Wartości',
           value:
