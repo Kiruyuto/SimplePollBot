@@ -1,1 +1,1 @@
-# SimplePollBot
+# Imagine doing polls by hand 🤡🤡
