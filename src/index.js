@@ -46,66 +46,83 @@ client.on('ready', async () => {
 
 const dalgomId = '212328101999411201';
 const grupa3ChannelId = '1001601818444431501';
-let timestamp = Date.now();
 let latestPoolId = '';
 
+let now = new Date();
+let daysAfterLastThursday = -7 + 3 - now.getDay();
+let lastWednsday = new Date(
+  now.getTime() + daysAfterLastThursday * 24 * 60 * 60 * 1000
+);
+let nextday = new Date(
+  lastWednsday.getFullYear(),
+  lastWednsday.getMonth(),
+  lastWednsday.getDate() + 6
+);
+
 client.on('messageCreate', async (message) => {
-  if (message.channel.id != grupa3ChannelId) return;
-  if (message.content == '!poll') {
-    if (
-      message.author.id == dalgomId ||
-      message.author.id == client.application.owner.id
-    ) {
-      let msgTimestamp = Date.now();
-      // Seconds below
-      if ((msgTimestamp - timestamp) / 1000 >= 6 * 24 * 60 * 60) {
-        const pollEmbed = new EmbedBuilder();
-        pollEmbed.addFields({
-          name: 'Wartości',
-          value:
-            '1️⃣ - Środa (Reset)\n2️⃣ - Czwartek\n3️⃣ - Piątek\n4️⃣ - Sobota\n5️⃣ - Niedziela\n6️⃣ - Poniedziałek\n7️⃣ - Wtorek (Last day)\n<a:Fill:1018928990616027156> - Bez znaczenia ',
+  try {
+    if (message.channel.id != grupa3ChannelId) {
+      message.author
+        .send(
+          'Nie możesz tego użyć na tym kanale 🙉\nSpróbuj na: <#1001601818444431501>'
+        )
+        .catch((e) => {
+          console.log(`Error: ${e.message}`);
         });
-
-        pollEmbed.setColor('#ff0000');
-        pollEmbed.setTitle('Vykas HardMode');
-
-        var now = new Date();
-        var daysAfterLastThursday = -7 + 3 - now.getDay();
-        var lastWednsday = new Date(
-          now.getTime() + daysAfterLastThursday * 24 * 60 * 60 * 1000
-        );
-        let nextday = new Date(
-          lastWednsday.getFullYear(),
-          lastWednsday.getMonth(),
-          lastWednsday.getDate() + 6
-        );
-
-        pollEmbed.setDescription(
-          `<t:${dt.getUnixTime(lastWednsday)}:D> - <t:${dt.getUnixTime(
-            nextday
-          )}:D>`
-        );
-
-        await message.channel
-          .send({ embeds: [pollEmbed] })
-          .then(async (msg) => {
-            await msg.react('1️⃣');
-            await msg.react('2️⃣');
-            await msg.react('3️⃣');
-            await msg.react('4️⃣');
-            await msg.react('5️⃣');
-            await msg.react('6️⃣');
-            await msg.react('7️⃣');
-            await msg.react('<a:Fill:1018928990616027156>');
-            latestPoolId = msg.id;
-          });
-      } else {
-        message.reply('Po co robić kolejną ankiete? 🤔\nZaczekaj chociaż 6d.');
-      }
-    } else {
-      const chan = await message.author.createDM();
-      await chan.send('Nie możesz tego użyć 😇');
+      return;
     }
+    if (message.content == '!poll') {
+      if (
+        message.author.id == dalgomId ||
+        message.author.id == client.application.owner.id
+      ) {
+        let msgTimestamp = Date.now();
+        // Seconds below
+        if ((msgTimestamp - lastWednsday) / 1000 >= 6 * 24 * 60 * 60) {
+          const pollEmbed = new EmbedBuilder();
+          pollEmbed.addFields({
+            name: 'Wartości',
+            value:
+              '1️⃣ - Środa (Reset)\n2️⃣ - Czwartek\n3️⃣ - Piątek\n4️⃣ - Sobota\n5️⃣ - Niedziela\n6️⃣ - Poniedziałek\n7️⃣ - Wtorek (Last day)\n<a:Fill:1018928990616027156> - Bez znaczenia ',
+          });
+
+          pollEmbed.setColor('#ff0000');
+          pollEmbed.setTitle('Vykas HardMode');
+
+          pollEmbed.setDescription(
+            `<t:${dt.getUnixTime(lastWednsday)}:D> - <t:${dt.getUnixTime(
+              nextday
+            )}:D>`
+          );
+
+          await message.channel
+            .send({ embeds: [pollEmbed] })
+            .then(async (msg) => {
+              await msg.react('1️⃣');
+              await msg.react('2️⃣');
+              await msg.react('3️⃣');
+              await msg.react('4️⃣');
+              await msg.react('5️⃣');
+              await msg.react('6️⃣');
+              await msg.react('7️⃣');
+              await msg.react('<a:Fill:1018928990616027156>');
+              latestPoolId = msg.id;
+            });
+        } else {
+          message.reply(
+            `Po co robić kolejną ankiete? 🤔\nUtworzyć nową będziesz mógł dopiero we Wtorek.. (<t:${dt.getUnixTime(
+              nextday
+            )}:R>)`
+          );
+        }
+      } else {
+        await message.author.send('Nie możesz tego użyć 😇').catch((e) => {
+          console.log(`Error: ${e.message}`);
+        });
+      }
+    }
+  } catch (e) {
+    console.log(`Wystąpił błąd: ${e}`);
   }
 });
 
