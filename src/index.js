@@ -17,16 +17,6 @@ const client = new Client({
     GatewayIntentBits.MessageContent,
   ],
   partials: ['CHANNEL'],
-  presence: {
-    status: 'online',
-    activities: [
-      {
-        name: 'Vykas enjoyer',
-        type: 'STREAMING',
-        url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-      },
-    ],
-  },
   restTimeOffset: 0,
 });
 
@@ -77,7 +67,6 @@ client.on('messageCreate', async (message) => {
         message.author.id == client.application.owner.id
       ) {
         let msgTimestamp = Date.now();
-        // Seconds below
         if (dt.getUnixTime(msgTimestamp) >= dt.getUnixTime(nextday)) {
           const pollEmbed = new EmbedBuilder();
           pollEmbed.addFields({
