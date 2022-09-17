@@ -2,7 +2,7 @@
   "arrowParens": "always",
   "bracketSpacing": true,
   "insertPragma": false,
-  "printWidth": 80,
+  "printWidth": 125,
   "proseWrap": "preserve",
   "requirePragma": false,
   "semi": true,
