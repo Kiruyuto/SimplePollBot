@@ -20,8 +20,8 @@
   "homepage": "https://github.com/Kiruyuto/SimplePollBot#readme",
   "dependencies": {
     "@discordjs/builders": "^1.2.0",
-    "date-fns": "^2.29.2",
     "discord.js": "^14.3.0",
-    "dotenv": "^16.0.2"
+    "dotenv": "^16.0.2",
+    "luxon": "^3.0.3"
   }
 }
