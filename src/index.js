@@ -42,8 +42,7 @@ client.on('messageCreate', async (message) => {
     if (message.channel.isDMBased()) return;
 
     if (message.content.toLowerCase() == '!poll') {
-      if (message.channel.id == IDs.grupa3ChannelId) {
-        //TODO: !=
+      if (message.channel.id != IDs.grupa3ChannelId) {
         message.author.send(`Nie możesz tego użyć na tym kanale 🙉\nSpróbuj na: <#${IDs.grupa3ChannelId}>`).catch(e);
         return;
       } else if (message.author.id == IDs.dalgom || message.author.id == client.application.owner.id) {
@@ -64,8 +63,7 @@ client.on('messageCreate', async (message) => {
 
         const dateDiff = wednesday.diffNow('days').toObject().days;
 
-        if (dateDiff <= 6) {
-          //TODO: <= -6
+        if (dateDiff <= -6) {
           let staticMembers = '';
           Object.keys(IDs).forEach((key) => {
             staticMembers += `[❓] <@${IDs[key]}>\n`;
