@@ -2,6 +2,8 @@ const { Client, GatewayIntentBits, ActivityType, EmbedBuilder } = require('disco
 const { DateTime } = require('luxon');
 const IDs = require('./id');
 const emojiDays = require('./emojiOptions');
+const mongoose = require('mongoose');
+const pollSchema = require('./schemas/poll-schema');
 require('dotenv').config();
 
 const client = new Client({
@@ -19,8 +21,10 @@ const client = new Client({
   allowedMentions: { parse: ['users', 'roles'], repliedUser: true },
 });
 
+const grupa3ChannelId = '1022978248415653949'; //'1001601818444431501';
+const guildId = '829478601417818152'; //'941663059657752616';
+
 client.on('ready', async () => {
-  console.log(`[${client.user.tag}] - Loaded`);
   client.user.setPresence({
     activities: [
       {
@@ -31,11 +35,20 @@ client.on('ready', async () => {
     ],
   });
   client.application.fetch();
-});
+  await mongoose
+    .connect(process.env.MONGO_URI, {
+      keepAlive: true,
+      dbName: 'Vykas-polls',
+    })
+    .then(() => console.log(`[${client.user.tag}] - Connected to MongoDB`));
 
-let now = DateTime.now();
-const grupa3ChannelId = '1001601818444431501';
-let pollId = '';
+  let pollDb = await pollSchema.findOne({ pollName: 'Vykas' });
+  const guild = await client.guilds.fetch(guildId);
+  const channel = guild.channels.cache.get(grupa3ChannelId);
+  const message = await channel.messages.fetch(pollDb.messageId);
+
+  console.log(`[${client.user.tag}] - Connected to Discord`);
+});
 
 client.on('messageCreate', async (message) => {
   try {
@@ -43,27 +56,30 @@ client.on('messageCreate', async (message) => {
 
     if (message.content.toLowerCase() == '!poll') {
       if (message.channel.id != grupa3ChannelId) {
-        message.author.send(`Nie możesz tego użyć na tym kanale 🙉\nSpróbuj na: <#${grupa3ChannelId}>`).catch(e);
+        message.react('👎');
+        message.author.send(`Nie możesz tego użyć na tym kanale 🙉\nSpróbuj na: <#${grupa3ChannelId}>`).catch();
         return;
       } else if (message.author.id == IDs.dalgom || message.author.id == client.application.owner.id) {
-        let wednesday;
-        if (now.weekday == 1 || now.weekday == 2) {
-          wednesday = DateTime.fromObject({
-            year: now.getFullYear,
-            weekNumber: now.weekNumber - 1,
-            weekday: 3,
+        let pollDb = await pollSchema.findOne({ pollName: 'Vykas' });
+
+        if (pollDb == null) {
+          await message.channel.send('😕 Nie udało się znaleźć TimeStampa w DB. Tworzenie nowego...').then((msg) => {
+            setTimeout(() => {
+              msg.delete();
+            }, 5000);
           });
-        } else {
-          wednesday = DateTime.fromObject({
-            year: now.getFullYear,
-            weekNumber: now.weekNumber,
-            weekday: 3,
-          });
+
+          await new pollSchema({
+            pollName: 'Vykas',
+          }).save();
+
+          pollDb = await pollSchema.findOne({ pollName: 'Vykas' });
         }
 
-        const dateDiff = wednesday.diffNow('days').toObject().days;
+        let dateDiff = DateTime.fromSeconds(pollDb.lastWednesdayUnix).diffNow('days').toObject().days;
 
-        if (dateDiff <= -6) {
+        if (dateDiff <= 6) {
+          //TODO: add -
           let staticMembers = '';
           Object.keys(IDs).forEach((key) => {
             staticMembers += `[❓] <@${IDs[key]}>\n`;
@@ -76,9 +92,13 @@ client.on('messageCreate', async (message) => {
 
           const pollEmbed = new EmbedBuilder()
             .setColor('#ff0000')
-            .setTitle('Vykas HardMode')
-            .setURL('https://i.imgur.com/cfdsW3C.png')
-            .setDescription(`<t:${wednesday.toMillis() / 1000}:D> - <t:${wednesday.plus({ days: 6 }).toMillis() / 1000}:D>`)
+            .setTitle('Vykas HardMode 😈')
+            .setImage('https://i.imgur.com/cfdsW3C.png')
+            .setDescription(
+              `<t:${DateTime.fromSeconds(pollDb.lastWednesdayUnix).plus({ weeks: 1 }).toMillis() / 1000}:D> - <t:${
+                DateTime.fromSeconds(pollDb.lastWednesdayUnix).plus({ weeks: 1, days: 6 }).toMillis() / 1000
+              }:D>`
+            )
             .setFooter({ text: `❓ - Brak głosu | ✅ - Głos oddany` })
             .setTimestamp(DateTime.now().toMillis())
             .addFields(
@@ -99,12 +119,19 @@ client.on('messageCreate', async (message) => {
               msg.react(key);
             });
 
-            pollId = msg.id;
-            now = DateTime.now();
+            await pollSchema.findOneAndUpdate(
+              { pollName: 'Vykas' },
+              {
+                messageId: msg.id,
+                lastWednesdayUnix: getLastWednesday(),
+              }
+            );
           });
         } else {
           message.reply(
-            `Utworzyć głosowanie będziesz mógł dopiero we Wtorek (<t:${wednesday.plus({ days: 6 }).toMillis() / 1000}:D>`
+            `Utworzyć głosowanie będziesz mógł dopiero we Wtorek (<t:${
+              DateTime.fromSeconds(pollDb.lastWednesdayUnix).plus({ days: 6 }).toMillis() / 1000
+            }:D>)`
           );
         }
       } else {
@@ -118,7 +145,10 @@ client.on('messageCreate', async (message) => {
 
 client.on('messageReactionAdd', async (reaction, user) => {
   if (user.bot) return;
-  if (reaction.message.id == pollId) {
+
+  let pollDb = await pollSchema.findOne({ pollName: 'Vykas' });
+
+  if (reaction.message.id == pollDb.messageId) {
     if (emojiDays[reaction.emoji.name] == undefined) return;
 
     await reaction.message.fetch(reaction.message.id).then((msg) => {
@@ -151,7 +181,10 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
 client.on('messageReactionRemove', async (reaction, user) => {
   if (user.bot) return;
-  if (reaction.message.id == pollId) {
+
+  let pollDb = await pollSchema.findOne({ pollName: 'Vykas' });
+
+  if (reaction.message.id == pollDb.messageId) {
     if (emojiDays[reaction.emoji.name] == undefined) return;
 
     await reaction.message.fetch(reaction.message.id).then((msg) => {
@@ -163,7 +196,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
         if (r.count >= sorted.first().count) max[r.emoji.name] = r.count;
       });
 
-      let msgStr = `Optymalny termin:\n`;
+      let msgStr = `Wyniki:\n`;
       for (const [k, v] of Object.entries(max)) {
         msgStr += `\`${emojiDays[k]} - ${v - 1} reakcje\`\n`;
       }
@@ -181,5 +214,25 @@ client.on('messageReactionRemove', async (reaction, user) => {
     });
   }
 });
+
+function getLastWednesday() {
+  let wednesday;
+  let now = DateTime.now();
+  if (now.weekday == 1 || now.weekday == 2) {
+    wednesday = DateTime.fromObject({
+      year: now.getFullYear,
+      weekNumber: now.weekNumber - 1,
+      weekday: 3,
+    });
+  } else {
+    wednesday = DateTime.fromObject({
+      year: now.getFullYear,
+      weekNumber: now.weekNumber,
+      weekday: 3,
+    });
+  }
+
+  return wednesday.toUnixInteger();
+}
 
 client.login(process.env.DC_TOKEN);
