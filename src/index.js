@@ -42,8 +42,8 @@ client.on('messageCreate', async (message) => {
     if (message.channel.isDMBased()) return;
 
     if (message.content.toLowerCase() == '!poll') {
-      if (message.channel.id != IDs.grupa3ChannelId) {
-        message.author.send(`Nie możesz tego użyć na tym kanale 🙉\nSpróbuj na: <#${IDs.grupa3ChannelId}>`).catch(e);
+      if (message.channel.id != grupa3ChannelId) {
+        message.author.send(`Nie możesz tego użyć na tym kanale 🙉\nSpróbuj na: <#${grupa3ChannelId}>`).catch(e);
         return;
       } else if (message.author.id == IDs.dalgom || message.author.id == client.application.owner.id) {
         let wednesday;
