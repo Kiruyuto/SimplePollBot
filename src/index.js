@@ -78,8 +78,7 @@ client.on('messageCreate', async (message) => {
 
         let dateDiff = DateTime.fromSeconds(pollDb.lastWednesdayUnix).diffNow('days').toObject().days;
 
-        if (dateDiff <= 6) {
-          //TODO: add -
+        if (dateDiff <= -6) {
           let staticMembers = '';
           Object.keys(IDs).forEach((key) => {
             staticMembers += `[❓] <@${IDs[key]}>\n`;
