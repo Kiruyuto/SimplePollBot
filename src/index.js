@@ -21,8 +21,8 @@ const client = new Client({
   allowedMentions: { parse: ['users', 'roles'], repliedUser: true },
 });
 
-const grupa3ChannelId = '1022978248415653949'; //'1001601818444431501';
-const guildId = '829478601417818152'; //'941663059657752616';
+const grupa3ChannelId = '1001601818444431501';
+const guildId = '941663059657752616';
 
 client.on('ready', async () => {
   client.user.setPresence({
