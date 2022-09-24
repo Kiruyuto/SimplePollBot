@@ -45,7 +45,9 @@ client.on('ready', async () => {
   let pollDb = await pollSchema.findOne({ pollName: 'Vykas' });
   const guild = await client.guilds.fetch(guildId);
   const channel = guild.channels.cache.get(grupa3ChannelId);
-  const message = await channel.messages.fetch(pollDb.messageId);
+  if (pollDb.messageId != 'NONE') {
+    const message = await channel.messages.fetch(pollDb.messageId);
+  }
 
   console.log(`[${client.user.tag}] - Connected to Discord`);
 });
